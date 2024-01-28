@@ -6,6 +6,8 @@ from typing import List
 import cv2
 from kivy.metrics import dp
 from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
 from model import Model
 from addObjectDialog import AddObjectDialog
 from camera import Camera
@@ -25,6 +27,7 @@ class NewApp(MDApp):
         self.model_is_trained = False
         self.camera = None
         self.model: Model = None
+        self.max_pictures_per_class = 20
         self.auto_prediction_is_enabled = False
         self.auto_prediction_event = None
         self.reset_training_data()
@@ -179,6 +182,26 @@ class NewApp(MDApp):
         print(f'Saving image to {image_path}')
         image.save(image_path)
         self.class_image_counters[class_name] += 1
+
+        # Check if the maximum number of pictures has been reached
+        if self.class_image_counters[class_name] >= self.max_pictures_per_class:
+            self.show_max_pictures_popup(class_name)
+
+    def show_max_pictures_popup(self, class_name):
+        dialog = MDDialog(
+            title="Enough Pictures Clicked!",
+            text=f"You have captured {self.max_pictures_per_class} pictures for {class_name}.",
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    on_release=lambda x: self.dismiss_max_pictures_popup(dialog),
+                )
+            ],
+        )
+        dialog.open()
+
+    def dismiss_max_pictures_popup(self, dialog):
+        dialog.dismiss()
 
     def image_path(self, class_name: str) -> str:
         class_index = self.class_names.index(class_name)
