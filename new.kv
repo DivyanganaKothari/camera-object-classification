@@ -8,19 +8,17 @@
         size_hint: 0.9, 0.9
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
-        RelativeLayout:
+        MDRelativeLayout:
             size_hint: 0.2, 0.2
             pos_hint: {'top': 1, 'left': 1}
 
             # Add the Spinner widget for camera selection
-            Spinner:
+            MDRaisedButton:
                 id: camera_spinner  # Assign an id to the spinner
                 text: 'Select Camera'
-                values: app.get_available_cameras()
                 size_hint: 1, 0.3
                 pos_hint: {'top': 1, 'left': 1}
-                on_text: app.on_camera_select(self.text)
-
+                on_release: app.open_camera_menu(self)
 
 
         MDBoxLayout:
@@ -29,32 +27,21 @@
             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
             MDLabel:
-                text: 'Camera Feed'
+                id: prediction_class
+                text: 'Prediction Class'
                 halign: 'center'
-                size_hint: 1, 0.1
+                size_hint: 1,0.1
                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-
-#            MDRaisedButton:
-#                text: 'Camera'
-#                size_hint: 1, 0.8
-#                md_bg_color: 0, 0, 0, 1
-#                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                font_size: '20sp'
 
             Camera:
                 id: camera
                 play: False
-                index: int(camera_spinner.text) if camera_spinner.text.isdigit() else '0'
-                size_hint: 1, 0.8
+                index: 0
+                size_hint: 1, 1
                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                resolution: (1920,1080)
 
-
-
-            MDLabel:
-                id: prediction_class
-                text: 'Prediction Class'
-                halign: 'center'
-                size_hint: 1, 0.1
-                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
         MDFloatLayout:
             size_hint: None, None

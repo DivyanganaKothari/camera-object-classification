@@ -4,6 +4,8 @@ from kivymd.uix.screen import MDScreen
 from PIL import Image as PILImage
 from typing import List
 import cv2
+from kivy.metrics import dp
+from kivymd.uix.menu import MDDropdownMenu
 from model import Model
 from addObjectDialog import AddObjectDialog
 from camera import Camera
@@ -26,6 +28,13 @@ class NewApp(MDApp):
         self.auto_prediction_is_enabled = False
         self.auto_prediction_event = None
         self.reset_training_data()
+        self.available_cameras = self.get_available_cameras()
+        # Pre-compute menu items
+        self.menu_items = [
+            {"text": str(i), "viewclass": "OneLineListItem", "on_release": lambda x=i: self.on_camera_select(x)} for i
+            in self.available_cameras
+        ]
+        self.dropdown_menu = None  # Initialize dropdown_menu as None
 
     @staticmethod
     def reset_training_data():
@@ -38,12 +47,10 @@ class NewApp(MDApp):
         self.model_is_trained = False
         self.auto_prediction_is_enabled = False
 
-
     def reset(self):
         self.reset_values()
         self.reset_training_data()
         self.remove_add_object_buttons()
-
 
     def remove_add_object_buttons(self) -> None:
         object_buttons = self.root.ids.object_button_box
@@ -58,8 +65,7 @@ class NewApp(MDApp):
 
         # Method is called after initialization of the UI
 
-
-    def get_available_cameras(self,limit=3):
+    def get_available_cameras(self, limit=3):
         """Check available camera indices."""
         index = 0
         arr = []
@@ -71,11 +77,33 @@ class NewApp(MDApp):
             index += 1
         return arr
 
-    def on_camera_select(self, text):
-        print(f'Selected camera: {text}')
-        self.root.ids.camera.index = int(text) if text.isdigit() else 0
-        print(f'New camera index: {self.root.ids.camera.index}')
+    def open_camera_menu(self, instance):
+        # Add separators between items
+        menu_items = []
+        for i, camera in enumerate(self.available_cameras):
+            menu_items.append({"text": f"Camera {camera}", "viewclass": "OneLineListItem",
+                               "on_release": lambda x=camera: self.on_camera_select(x),
+                               "height": dp(45),  # Set the height of the item
+                               "divider": None if i == len(self.available_cameras) - 1 else "Full"
+                               # Disable divider for the last item
+                               })
+
+        self.dropdown_menu = MDDropdownMenu(
+            caller=instance,
+            items=menu_items,
+            width_mult=2,  # Adjust this value for the desired width
+            max_height=dp(100),  # Adjust this value for the desired height
+        )
+        self.dropdown_menu.open()
+
+    def on_camera_select(self, selected_camera):
+
+        self.root.ids.camera.index = int(selected_camera)
         self.root.ids.camera.play = True
+        print(f"Selected camera from menu: {selected_camera}")
+        # Manually dismiss the dropdown menu after selecting an item
+        if self.dropdown_menu:
+            self.dropdown_menu.dismiss()
 
     def on_start(self):
         Clock.schedule_once(self.initialize_camera, 0)
