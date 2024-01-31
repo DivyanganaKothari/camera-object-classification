@@ -30,14 +30,15 @@ class CustomDataset(Dataset):
 class Model:
     def __init__(self, num_classes):
         self.model = models.mobilenet_v2(pretrained=True)
-        num_features = self.model.classifier[1].in_features  # Get the number of input features from the pretrained model
+        num_features = self.model.classifier[
+            1].in_features  # Get the number of input features from the pretrained model
         self.model.classifier[1] = nn.Linear(num_features, num_classes)
         self.model_state = None  # model-specific state to reset
 
     def train(self, class_counters, num_epochs):
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),  # Randomly flip images horizontally
-            transforms.Resize((224, 224)),
+            transforms.Resize((50, 50)),
             transforms.ToTensor(),
         ])
 
@@ -52,7 +53,6 @@ class Model:
                 img = transform(img)
                 img_list.append(img)
                 class_list.append(class_num)
-
 
         dataset = CustomDataset(list(zip(img_list, class_list)))
 
@@ -78,7 +78,7 @@ class Model:
 
     def predict(self, frame):
         transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((50, 50)),
             transforms.ToTensor(),
         ])
 
@@ -92,5 +92,3 @@ class Model:
     def reset(self):
         # Reset any state or knowledge related to objects
         self.model_state = None  # Reset model-specific state if applicable
-
-

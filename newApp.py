@@ -19,6 +19,10 @@ class HomeScreen(MDScreen):
     pass
 
 
+def dismiss_max_pictures_popup(dialog):
+    dialog.dismiss()
+
+
 class NewApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -27,7 +31,7 @@ class NewApp(MDApp):
         self.model_is_trained = False
         self.camera = None
         self.model: Model = None
-        self.max_pictures_per_class = 20
+        self.max_pictures_per_class = 25
         self.auto_prediction_is_enabled = False
         self.auto_prediction_event = None
         self.reset_training_data()
@@ -37,7 +41,9 @@ class NewApp(MDApp):
             {"text": str(i), "viewclass": "OneLineListItem", "on_release": lambda x=i: self.on_camera_select(x)} for i
             in self.available_cameras
         ]
-        self.dropdown_menu = None  # Initialize dropdown_menu as None
+        self.dropdown_menu = None
+        self.classes_with_popup_shown = set()
+
 
     @staticmethod
     def reset_training_data():
@@ -54,6 +60,8 @@ class NewApp(MDApp):
         self.reset_values()
         self.reset_training_data()
         self.remove_add_object_buttons()
+        self.classes_with_popup_shown.clear()
+        self.update_prediction_class("")
 
     def remove_add_object_buttons(self) -> None:
         object_buttons = self.root.ids.object_button_box
@@ -124,7 +132,7 @@ class NewApp(MDApp):
             return
 
         class_image_counters_values = self.class_image_counters.values()
-        self.model.train(class_image_counters_values, num_epochs=7)
+        self.model.train(class_image_counters_values, num_epochs=10)
         self.model_is_trained = True
 
     def predict(self):
@@ -143,7 +151,7 @@ class NewApp(MDApp):
         self.update_prediction_class(prediction_class)
         return prediction_class
 
-    def update_prediction_class(self, prediction_class: str) -> None:
+    def update_prediction_class(self, prediction_class: str = "") -> None:
         self.root.ids.prediction_class.text = prediction_class
 
     def open_add_object_dialog(self) -> None:
@@ -188,20 +196,19 @@ class NewApp(MDApp):
             self.show_max_pictures_popup(class_name)
 
     def show_max_pictures_popup(self, class_name):
-        dialog = MDDialog(
-            title="Enough Pictures Clicked!",
-            text=f"You have captured {self.max_pictures_per_class} pictures for {class_name}.",
-            buttons=[
-                MDFlatButton(
-                    text="OK",
-                    on_release=lambda x: self.dismiss_max_pictures_popup(dialog),
-                )
-            ],
-        )
-        dialog.open()
-
-    def dismiss_max_pictures_popup(self, dialog):
-        dialog.dismiss()
+        if class_name not in self.classes_with_popup_shown:
+            dialog = MDDialog(
+                title="Enough Pictures Clicked!",
+                text=f"You have captured {self.max_pictures_per_class} pictures for {class_name}.",
+                buttons=[
+                    MDFlatButton(
+                        text="OK",
+                        on_release=lambda x: dismiss_max_pictures_popup(dialog),
+                    )
+                ],
+            )
+            dialog.open()
+            self.classes_with_popup_shown.add(class_name)
 
     def image_path(self, class_name: str) -> str:
         class_index = self.class_names.index(class_name)
