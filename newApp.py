@@ -43,8 +43,9 @@ class NewApp(MDApp):
         ]
         self.dropdown_menu = None
         self.classes_with_popup_shown = set()
-
-
+        self.selected_camera = None
+        self.camera0 = None
+        self.camera1 = None
     @staticmethod
     def reset_training_data():
         clear_folder(f'{TRAINING_DATA_FOLDER}/')
@@ -109,18 +110,31 @@ class NewApp(MDApp):
 
     def on_camera_select(self, selected_camera):
 
-        self.root.ids.camera.index = int(selected_camera)
-        self.root.ids.camera.play = True
-        print(f"Selected camera from menu: {selected_camera}")
-        # Manually dismiss the dropdown menu after selecting an item
+        selected_camera = int(selected_camera)
+        if selected_camera == 0:
+            self.root.ids.camera0.play = True
+            self.root.ids.camera1.play = False
+            self.initialize_camera(self.root.ids.camera0)
+        elif selected_camera == 1:
+            self.root.ids.camera0.play = False
+            self.root.ids.camera1.play = True
+            self.initialize_camera(self.root.ids.camera1)
+
         if self.dropdown_menu:
             self.dropdown_menu.dismiss()
+
+    #     self.root.ids.camera.index = int(selected_camera)
+    #     self.root.ids.camera.play = True
+    #     print(f"Selected camera from menu: {selected_camera}")
+    # Manually dismiss the dropdown menu after selecting an item
+    #    if self.dropdown_menu:
+    #            self.dropdown_menu.dismiss()
 
     def on_start(self):
         Clock.schedule_once(self.initialize_camera, 0)
 
     def initialize_camera(self, dt):
-        self.camera = Camera(self.root.ids.camera)
+        pass
 
     @staticmethod
     def error_dialog(message: str):
