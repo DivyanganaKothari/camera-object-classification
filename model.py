@@ -9,7 +9,6 @@ import torchvision.transforms as transforms
 
 from utils import *
 
-
 class CustomDataset(Dataset):
     def __init__(self, data_list, transform=None):
         self.data_list = data_list
@@ -38,7 +37,7 @@ class Model:
     def train(self, class_counters, num_epochs):
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),  # Randomly flip images horizontally
-            transforms.Resize((50, 50)),
+            # transforms.Resize((50, 50)),
             transforms.ToTensor(),
         ])
 
@@ -78,7 +77,7 @@ class Model:
 
     def predict(self, frame):
         transform = transforms.Compose([
-            transforms.Resize((50, 50)),
+            # transforms.Resize((50, 50)),
             transforms.ToTensor(),
         ])
 

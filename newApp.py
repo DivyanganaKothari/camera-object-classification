@@ -19,10 +19,6 @@ class HomeScreen(MDScreen):
     pass
 
 
-def dismiss_max_pictures_popup(dialog):
-    dialog.dismiss()
-
-
 class NewApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -31,11 +27,11 @@ class NewApp(MDApp):
         self.model_is_trained = False
         self.camera = None
         self.model: Model = None
-        self.max_pictures_per_class = 25
+        self.max_pictures_per_class = 35
         self.auto_prediction_is_enabled = False
         self.auto_prediction_event = None
         self.reset_training_data()
-        self.available_cameras = self.get_available_cameras()
+        self.available_cameras = []
         # Pre-compute menu items
         self.menu_items = [
             {"text": str(i), "viewclass": "OneLineListItem", "on_release": lambda x=i: self.on_camera_select(x)} for i
@@ -43,9 +39,8 @@ class NewApp(MDApp):
         ]
         self.dropdown_menu = None
         self.classes_with_popup_shown = set()
-        self.selected_camera = None
-        self.camera0 = None
-        self.camera1 = None
+
+
     @staticmethod
     def reset_training_data():
         clear_folder(f'{TRAINING_DATA_FOLDER}/')
@@ -62,7 +57,7 @@ class NewApp(MDApp):
         self.reset_training_data()
         self.remove_add_object_buttons()
         self.classes_with_popup_shown.clear()
-        self.update_prediction_class("")
+        self.update_prediction_class("Prediction Class")
 
     def remove_add_object_buttons(self) -> None:
         object_buttons = self.root.ids.object_button_box
@@ -110,31 +105,21 @@ class NewApp(MDApp):
 
     def on_camera_select(self, selected_camera):
 
-        selected_camera = int(selected_camera)
-        if selected_camera == 0:
-            self.root.ids.camera0.play = True
-            self.root.ids.camera1.play = False
-            self.initialize_camera(self.root.ids.camera0)
-        elif selected_camera == 1:
-            self.root.ids.camera0.play = False
-            self.root.ids.camera1.play = True
-            self.initialize_camera(self.root.ids.camera1)
-
+        self.root.ids.camera.index = int(selected_camera)
+        self.root.ids.camera.play = True
+        print(f"Selected camera from menu: {selected_camera}")
+        # Manually dismiss the dropdown menu after selecting an item
         if self.dropdown_menu:
             self.dropdown_menu.dismiss()
-
-    #     self.root.ids.camera.index = int(selected_camera)
-    #     self.root.ids.camera.play = True
-    #     print(f"Selected camera from menu: {selected_camera}")
-    # Manually dismiss the dropdown menu after selecting an item
-    #    if self.dropdown_menu:
-    #            self.dropdown_menu.dismiss()
 
     def on_start(self):
         Clock.schedule_once(self.initialize_camera, 0)
 
     def initialize_camera(self, dt):
-        pass
+        self.available_cameras = self.get_available_cameras()
+        self.root.ids.camera.index = int(self.available_cameras[-1])
+        self.root.ids.camera.play = True
+        self.camera = Camera(self.root.ids.camera)
 
     @staticmethod
     def error_dialog(message: str):
@@ -165,7 +150,7 @@ class NewApp(MDApp):
         self.update_prediction_class(prediction_class)
         return prediction_class
 
-    def update_prediction_class(self, prediction_class: str = "") -> None:
+    def update_prediction_class(self, prediction_class: str) -> None:
         self.root.ids.prediction_class.text = prediction_class
 
     def open_add_object_dialog(self) -> None:
@@ -217,12 +202,15 @@ class NewApp(MDApp):
                 buttons=[
                     MDFlatButton(
                         text="OK",
-                        on_release=lambda x: dismiss_max_pictures_popup(dialog),
+                        on_release=lambda x: self.dismiss_max_pictures_popup(dialog),
                     )
                 ],
             )
             dialog.open()
             self.classes_with_popup_shown.add(class_name)
+
+    def dismiss_max_pictures_popup(self, dialog):
+        dialog.dismiss()
 
     def image_path(self, class_name: str) -> str:
         class_index = self.class_names.index(class_name)

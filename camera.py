@@ -15,11 +15,5 @@ class Camera:
 
         # Create a PIL Image from the texture data
         image = PILImage.frombytes(mode='RGBA', size=texture.size, data=data)
-
-        return image.convert('RGB')
-
-
- #       self.camera.export_to_png(f'{TRAINING_DATA_FOLDER}/temp/image.png')
- #       image = PILImage.open(f'{TRAINING_DATA_FOLDER}/temp/image.png')
- #       image.thumbnail((150, 150), Image.LANCZOS)
- #       return image.convert('RGB')
+        image.thumbnail((128, 128), Image.LANCZOS)
+        return image.convert('RGB', )
