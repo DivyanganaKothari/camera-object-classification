@@ -67,8 +67,7 @@ class NewApp(MDApp):
             object_buttons.remove_widget(button)
 
     def build(self):
-        self.title = 'MDZ Ruhr OWL - Camera Object Classification'
-        self.icon = 'images/mdz_icon.jpg'
+        self.title = 'Camera Object Classification'
         return HomeScreen()
 
         # Method is called after initialization of the UI
