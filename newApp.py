@@ -13,6 +13,7 @@ from addObjectDialog import AddObjectDialog
 from camera import Camera
 from errorDialog import ErrorDialog
 from utils import *
+import subprocess
 
 
 class HomeScreen(MDScreen):
@@ -32,6 +33,7 @@ class NewApp(MDApp):
         self.auto_prediction_event = None
         self.reset_training_data()
         self.available_cameras = []
+        self.empty_object_class = "Empty Object"  # class name for the empty object
         # Pre-compute menu items
         self.menu_items = [
             {"text": str(i), "viewclass": "OneLineListItem", "on_release": lambda x=i: self.on_camera_select(x)} for i
@@ -39,7 +41,6 @@ class NewApp(MDApp):
         ]
         self.dropdown_menu = None
         self.classes_with_popup_shown = set()
-
 
     @staticmethod
     def reset_training_data():
@@ -73,14 +74,16 @@ class NewApp(MDApp):
         # Method is called after initialization of the UI
 
     def get_available_cameras(self, limit=3):
-        """Check available camera indices."""
-        index = 0
         arr = []
+        index = 0
         while index < limit:
-            cap = cv2.VideoCapture(index, cv2.CAP_MSMF)  # or cv2.CAP_ANY
-            if cap.isOpened():
-                arr.append(str(index))
-                cap.release()
+            try:
+                cap = cv2.VideoCapture(index, cv2.CAP_MSMF)  # or cv2.CAP_ANY
+                if cap.isOpened():
+                    arr.append(str(index))
+                    cap.release()
+            except Exception as e:
+                print(f"Error accessing camera {index}: {e}")
             index += 1
         return arr
 
@@ -172,6 +175,15 @@ class NewApp(MDApp):
         class_path = self.class_path(class_name)
         create_folder(class_path)
 
+    def create_empty_class_button(self) -> None:
+        if self.empty_object_class not in self.class_names:
+            # If not, add it directly without calling add_class method
+            self.class_names.append(self.empty_object_class)
+            self.class_image_counters[self.empty_object_class] = 0
+            self.create_image_folder(self.empty_object_class)
+        # Call add_empty_object method directly
+        self.save_new_picture(self.empty_object_class)
+
     def create_class_button(self, class_name: str) -> None:
         object_buttons = self.root.ids.object_button_box
         new_object_button = MDRectangleFlatButton(
@@ -184,6 +196,7 @@ class NewApp(MDApp):
         object_buttons.add_widget(new_object_button)
 
     def save_new_picture(self, class_name) -> None:
+
         image: PILImage = self.camera.get_frame()
         image_path = self.image_path(class_name)
         print(f'Saving image to {image_path}')
@@ -193,6 +206,14 @@ class NewApp(MDApp):
         # Check if the maximum number of pictures has been reached
         if self.class_image_counters[class_name] >= self.max_pictures_per_class:
             self.show_max_pictures_popup(class_name)
+
+        # Duplicate images
+        if class_name == self.empty_object_class:
+            first_class_image = PILImage.open(image_path)  # Open the saved image
+            for _ in range(30):  # Duplicate the image 30 times
+                new_image_path = self.image_path(class_name)
+                first_class_image.save(new_image_path)  # Save the duplicated image
+                self.class_image_counters[class_name] += 1  # Update the image counter
 
     def show_max_pictures_popup(self, class_name):
         if class_name not in self.classes_with_popup_shown:
