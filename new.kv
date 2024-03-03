@@ -98,6 +98,13 @@
                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
                 MDRaisedButton:
+                    text: 'Add Empty Object'
+                    size_hint: 1, None
+                    height: 50
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    on_release: app.create_empty_class_button()
+
+                MDRaisedButton:
                     text: 'Add Object'
                     size_hint: 1, None
                     height: 50
