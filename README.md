@@ -8,7 +8,7 @@ Live Webcam Integration: Provides real-time object classification directly throu
 
 Pre-Trained Deep Learning Models: Utilizes powerful pre-trained deep learning model (MobileNet) for high-accuracy predictions, enabling fast and reliable object detection in a variety of scenarios.
 
-User-Friendly Interface: Built with Flask (or KivyMD), the UI allows users to easily upload images, stream video, and interact with the application, providing a smooth and engaging experience.
+User-Friendly Interface: Built with KivyMD, the UI allows users to easily upload images, stream video, and interact with the application, providing a smooth and engaging experience.
 
 Technologies Used
 Programming Languages: Python, KivyMD
